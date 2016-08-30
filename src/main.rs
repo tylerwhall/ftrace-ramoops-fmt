@@ -83,8 +83,8 @@ struct FnCall {
 fn ftrace<F: BufRead>(f: F) -> Vec<FnCall> {
     let regex = r"(?x)
         (?P<cpu>\d+)\s+             # CPU
-        (?P<from>[0-9a-fA-F]+)\s+   # From Addr
         (?P<to>[0-9a-fA-F]+)\s+     # To Addr
+        (?P<from>[0-9a-fA-F]+)\s+   # From Addr
         ";
     let regex = Regex::new(regex).unwrap();
     f.lines().map(|line| {
@@ -132,6 +132,6 @@ fn main() {
     for call in calls {
         let from = find_sym(call.from, &syms).unwrap();
         let to = find_sym(call.to, &syms).unwrap();
-        println!("{} {} <- {}", call.cpu, from, to);
+        println!("{} {} <- {}", call.cpu, to.sym, from);
     }
 }
