@@ -69,8 +69,16 @@ impl<'a> Display for SymOffset<'a> {
 
 fn find_sym(needle: u64, syms: &Syms) -> Option<SymOffset> {
     use std::collections::Bound;
-    // Not sure if last() is implemented efficiently
-    syms.range(Bound::Included(&0), Bound::Included(&needle)).last()
+    // Most efficient way (I can find as of Rust 1.11) to search for the
+    // closest <= element. range() internally finds the first and last nodes
+    // immediately. next_back() of the DoubleEndedIterator returns the last
+    // node directly. Avoid last() on the Iterator because it uses the default
+    // implementation that iterates sequentially and takes ~10 seconds for the
+    // whole file.
+    //
+    // Unbounded range on the left still traverses to the left-most node which
+    // is technically unnecessary work.
+    syms.range(Bound::Unbounded, Bound::Included(&needle)).next_back()
         .map(|(addr, sym)| (SymOffset { addr: *addr, offset: needle - addr, sym: sym }))
 }
 
